@@ -11,7 +11,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 # Register a font that supports Chinese characters and set as default
 try:
     pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
-    pisa_default.DEFAULT_FONT = "STSong-Light"
+    # pisa_default.DEFAULT_FONT = "STSong-Light" # This line needs to be commented out
 except Exception:
     # If registration fails, fallback to the library default
     pass
