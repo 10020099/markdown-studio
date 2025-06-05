@@ -16,7 +16,7 @@ Markdown Studio 是一个基于 **Tkinter** 的简洁 Markdown 编辑器，提�
 
 1. 克隆仓库：
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/10020099/markdown-studio.git
    cd markdown-studio
    ```
 2. 安装依赖：
