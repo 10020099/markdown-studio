@@ -936,8 +936,10 @@ class MarkdownViewer(tk.Tk):
                     "<style>body{font-family:'STSong-Light';}</style></head>"
                     f"<body>{html_body}</body></html>"
                 )
+                import io
                 with open(file_path, "wb") as f:
-                    pisa_status = pisa.CreatePDF(html, dest=f, encoding="utf-8")
+                    html_bytes = io.BytesIO(html.encode("utf-8"))
+                    pisa_status = pisa.CreatePDF(html_bytes, dest=f)
                 if pisa_status.err:
                     raise Exception("PDF生成失败")
                 messagebox.showinfo("导出PDF", "PDF 导出成功！ 📄")
