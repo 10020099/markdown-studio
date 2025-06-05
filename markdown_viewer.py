@@ -46,6 +46,7 @@ class MarkdownViewer(tk.Tk):
         self.setup_keyboard_shortcuts()
         self.create_welcome_message()
         self.start_background_animation()
+        self.update_task = None
 
     def setup_style(self):
         """设置应用程序样式"""
@@ -141,45 +142,49 @@ class MarkdownViewer(tk.Tk):
 
     def start_background_animation(self):
         """启动背景动画效果"""
-        def animate_title():
-            animations = [
-                "✨ Markdown Studio Pro ✨",
-                "🌟 Markdown Studio Pro 🌟", 
-                "💫 Markdown Studio Pro 💫",
-                "⭐ Markdown Studio Pro ⭐",
-                "🎆 Markdown Studio Pro 🎆"
-            ]
-            while True:
-                for title in animations:
-                    if hasattr(self, 'winfo_exists') and self.winfo_exists():
-                        self.title(title)
-                        time.sleep(2)
-                    else:
-                        break
-        
-        animation_thread = threading.Thread(target=animate_title, daemon=True)
-        animation_thread.start()
+        self._animation_titles = [
+            "✨ Markdown Studio Pro ✨",
+            "🌟 Markdown Studio Pro 🌟",
+            "💫 Markdown Studio Pro 💫",
+            "⭐ Markdown Studio Pro ⭐",
+            "🎆 Markdown Studio Pro 🎆",
+        ]
+        self._animation_index = 0
+
+        def animate():
+            if self.winfo_exists():
+                title = self._animation_titles[self._animation_index]
+                self.title(title)
+                self._animation_index = (
+                    self._animation_index + 1
+                ) % len(self._animation_titles)
+                self.after(2000, animate)
+
+        self.after(2000, animate)
 
     def start_auto_save(self):
         """启动自动保存功能"""
+
         def auto_save():
-            while True:
-                time.sleep(30)  # 每30秒检查一次
-                if (self.auto_save_enabled and 
-                    self.current_file and 
-                    time.time() - self.last_save_time > 30):
-                    try:
-                        content = self.editor.get("1.0", tk.END)
-                        with open(self.current_file, "w", encoding="utf-8") as f:
-                            f.write(content)
-                        self.typing_indicator.config(text="💾 自动保存完成")
-                        self.after(2000, lambda: self.typing_indicator.config(text=""))
-                        self.last_save_time = time.time()
-                    except:
-                        pass
-        
-        auto_save_thread = threading.Thread(target=auto_save, daemon=True)
-        auto_save_thread.start()
+            if (
+                self.auto_save_enabled
+                and self.current_file
+                and time.time() - self.last_save_time > 30
+            ):
+                try:
+                    content = self.editor.get("1.0", tk.END)
+                    with open(self.current_file, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    self.typing_indicator.config(text="💾 自动保存完成")
+                    self.after(
+                        2000, lambda: self.typing_indicator.config(text="")
+                    )
+                    self.last_save_time = time.time()
+                except Exception:
+                    pass
+            self.after(30000, auto_save)
+
+        self.after(30000, auto_save)
 
     def create_widgets(self):
         # 创建顶部工具栏
@@ -394,6 +399,15 @@ class MarkdownViewer(tk.Tk):
 
     def on_text_change(self, event=None):
         self.editor.edit_modified(False)
+        self.schedule_update()
+
+    def schedule_update(self):
+        if self.update_task is not None:
+            self.after_cancel(self.update_task)
+        self.update_task = self.after(300, self.perform_update)
+
+    def perform_update(self):
+        self.update_task = None
         self.update_preview()
         self.update_word_count()
         self.apply_syntax_highlighting()
@@ -482,15 +496,14 @@ class MarkdownViewer(tk.Tk):
 
     def start_clock(self):
         """启动时钟"""
+
         def update_clock():
-            while True:
-                current_time = datetime.now().strftime("%H:%M:%S")
-                if hasattr(self, 'clock_label'):
-                    self.clock_label.config(text=f"🕐 {current_time}")
-                time.sleep(1)
-        
-        clock_thread = threading.Thread(target=update_clock, daemon=True)
-        clock_thread.start()
+            current_time = datetime.now().strftime("%H:%M:%S")
+            if hasattr(self, "clock_label"):
+                self.clock_label.config(text=f"🕐 {current_time}")
+            self.after(1000, update_clock)
+
+        self.after(1000, update_clock)
 
     def create_welcome_message(self):
         """创建欢迎消息"""
