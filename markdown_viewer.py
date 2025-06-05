@@ -4,6 +4,17 @@ from tkinter.scrolledtext import ScrolledText
 from tkhtmlview import HTMLLabel
 import markdown
 from xhtml2pdf import pisa
+from xhtml2pdf import default as pisa_default
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+
+# Register a font that supports Chinese characters and set as default
+try:
+    pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
+    pisa_default.DEFAULT_FONT = "STSong-Light"
+except Exception:
+    # If registration fails, fallback to the library default
+    pass
 import sys
 import ctypes
 import threading
@@ -917,11 +928,16 @@ class MarkdownViewer(tk.Tk):
         if file_path:
             try:
                 markdown_text = self.editor.get("1.0", tk.END)
-                html = markdown.markdown(
+                html_body = markdown.markdown(
                     markdown_text, extensions=["fenced_code", "tables", "toc"]
                 )
+                html = (
+                    "<html><head><meta charset='utf-8'>"
+                    "<style>body{font-family:'STSong-Light';}</style></head>"
+                    f"<body>{html_body}</body></html>"
+                )
                 with open(file_path, "wb") as f:
-                    pisa_status = pisa.CreatePDF(html, dest=f)
+                    pisa_status = pisa.CreatePDF(html, dest=f, encoding="utf-8")
                 if pisa_status.err:
                     raise Exception("PDF生成失败")
                 messagebox.showinfo("导出PDF", "PDF 导出成功！ 📄")
