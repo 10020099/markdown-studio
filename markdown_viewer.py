@@ -3,6 +3,9 @@ from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 from tkhtmlview import HTMLLabel
 import markdown
+from xhtml2pdf import pisa
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.pdfbase import pdfmetrics
 import sys
 import ctypes
 import threading
@@ -213,6 +216,7 @@ class MarkdownViewer(tk.Tk):
         self.create_fancy_button(left_frame, "📁 打开", self.open_file, self.colors['accent_blue'])
         self.create_fancy_button(left_frame, "💾 保存", self.save_file, self.colors['accent_green'])
         self.create_fancy_button(left_frame, "📝 另存为", self.save_file_as, self.colors['accent_purple'])
+        self.create_fancy_button(left_frame, "📄 导出PDF", self.export_to_pdf, self.colors['accent_orange'])
         
         # 右侧信息显示
         right_frame = tk.Frame(toolbar_frame, bg=self.colors['bg_secondary'])
@@ -276,6 +280,7 @@ class MarkdownViewer(tk.Tk):
         file_menu.add_command(label="📁 打开", command=self.open_file)
         file_menu.add_command(label="💾 保存", command=self.save_file)
         file_menu.add_command(label="📝 另存为", command=self.save_file_as)
+        file_menu.add_command(label="📄 导出PDF", command=self.export_to_pdf)
         file_menu.add_separator()
         file_menu.add_command(label="🚪 退出", command=self.quit)
         menubar.add_cascade(label="📂 文件", menu=file_menu)
@@ -716,6 +721,7 @@ class MarkdownViewer(tk.Tk):
    Ctrl + O     打开文件
    Ctrl + S     保存文件
    Ctrl + Shift + S     另存为
+   Ctrl + P     导出PDF
    Ctrl + N     新建文件
 
 ✂️ 编辑操作:
@@ -752,6 +758,7 @@ class MarkdownViewer(tk.Tk):
    • 自动保存功能
    • 多主题切换
    • 智能统计
+   • PDF 导出
         """
         
         text_widget = ScrolledText(shortcuts_window,
@@ -817,6 +824,7 @@ class MarkdownViewer(tk.Tk):
         self.bind('<Control-o>', lambda e: self.open_file())
         self.bind('<Control-s>', lambda e: self.save_file())
         self.bind('<Control-Shift-S>', lambda e: self.save_file_as())
+        self.bind('<Control-p>', lambda e: self.export_to_pdf())
         self.bind('<Control-plus>', lambda e: self.increase_font_size())
         self.bind('<Control-minus>', lambda e: self.decrease_font_size())
         self.bind('<Control-0>', lambda e: self.reset_font_size())
@@ -901,6 +909,36 @@ class MarkdownViewer(tk.Tk):
             except Exception as e:
                 messagebox.showerror("错误", f"无法保存文件: {str(e)}")
 
+    def export_to_pdf(self):
+        """导出为 PDF 文件"""
+        file_path = filedialog.asksaveasfilename(
+            title="导出为PDF",
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+        )
+        if file_path:
+            try:
+                markdown_text = self.editor.get("1.0", tk.END)
+                html_body = markdown.markdown(
+                    markdown_text, extensions=["fenced_code", "tables", "toc"]
+                )
+
+                # 为中文注册内置字体
+                pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
+
+                # 应用默认字体，避免中文字符丢失
+                html = (
+                    "<style>body { font-family: 'STSong-Light'; }</style>" + html_body
+                )
+
+                with open(file_path, "wb") as f:
+                    pisa_status = pisa.CreatePDF(html, dest=f)
+                if pisa_status.err:
+                    raise Exception("PDF生成失败")
+                messagebox.showinfo("导出PDF", "PDF 导出成功！ 📄")
+            except Exception as e:
+                messagebox.showerror("错误", f"无法导出PDF: {str(e)}")
+
     def apply_syntax_highlighting(self):
         """应用Markdown语法高亮"""
         try:
@@ -978,6 +1016,8 @@ class MarkdownViewer(tk.Tk):
             # 如果语法高亮出错，静默忽略
             pass
 
+
 if __name__ == "__main__":
     app = MarkdownViewer()
     app.mainloop()
+
