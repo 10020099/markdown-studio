@@ -7,6 +7,11 @@ from xhtml2pdf import pisa
 from xhtml2pdf import default as pisa_default
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+import os
+
+import easyocr
+import numpy as np
+from PIL import Image
 
 # Register a font that supports Chinese characters and set as default
 try:
@@ -21,7 +26,6 @@ import threading
 import time
 from datetime import datetime
 import random
-import os
 
 if sys.platform == "win32":
     try:
@@ -137,16 +141,16 @@ class MarkdownViewer(tk.Tk):
                 "启动实时预览...",
                 "完成加载！"
             ]
-            
-            for i, step in enumerate(steps):
+            def update_ui(step, value):
                 status_label.config(text=step)
-                progress['value'] = (i + 1) * 20
-                splash.update()
+                progress['value'] = value
+            def finish():
+                splash.destroy()
+                self.deiconify()
+            for i, step in enumerate(steps):
+                splash.after(0, update_ui, step, (i + 1) * 20)
                 time.sleep(0.5)
-            
-            # 关闭启动画面，显示主窗口
-            splash.destroy()
-            self.deiconify()
+            splash.after(0, finish)
         
         # 在单独线程中运行加载过程
         loading_thread = threading.Thread(target=load_progress, daemon=True)
@@ -308,6 +312,8 @@ class MarkdownViewer(tk.Tk):
         tools_menu.add_command(label="🔧 设置", command=self.show_settings)
         tools_menu.add_command(label="💾 自动保存", command=self.toggle_auto_save)
         tools_menu.add_command(label="🎯 专注模式", command=self.toggle_focus_mode)
+        tools_menu.add_separator()
+        tools_menu.add_command(label="📷 OCR识别", command=self.ocr_image)
         tools_menu.add_separator()
         tools_menu.add_command(label="⌨️ 快捷键", command=self.show_shortcuts)
         tools_menu.add_command(label="❓ 关于", command=self.show_about)
@@ -1022,6 +1028,40 @@ class MarkdownViewer(tk.Tk):
         except Exception:
             # 如果语法高亮出错，静默忽略
             pass
+
+    def ocr_image(self):
+        """使用 Pure Python 库 easyocr 执行 OCR 并插入识别结果"""
+        # 初始化 OCR 引擎（缓存 Reader）
+        if not hasattr(self, '_ocr_reader'):
+            try:
+                # 支持简体中文和英文
+                self._ocr_reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)
+            except Exception as e:
+                messagebox.showerror("错误", f"OCR 引擎初始化失败: {str(e)}")
+                return
+        reader = self._ocr_reader
+        # 选择图片
+        file_paths = filedialog.askopenfilenames(
+            title="选择要识别的图片",
+            filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.bmp;*.gif"), ("All files", "*.*")]
+        )
+        if not file_paths:
+            return
+        results = []
+        for file_path in file_paths:
+            try:
+                # 使用 PIL 读取图片并转换为 numpy 数组，避免路径编码问题
+                img = Image.open(file_path).convert('RGB')
+                img_array = np.array(img)
+                texts = reader.readtext(img_array, detail=0)
+                if texts:
+                    results.append("\n".join(texts))
+            except Exception as e:
+                messagebox.showerror("错误", f"OCR 识别失败: {str(e)}")
+                return
+        combined = "\n\n".join(results)
+        self.editor.insert(tk.END, combined + "\n")
+        messagebox.showinfo("OCR 识别", "OCR 识别完成！")
 
 
 if __name__ == "__main__":

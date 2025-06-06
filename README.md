@@ -23,6 +23,11 @@ Markdown Studio 是一个基于 **Tkinter** 的简洁 Markdown 编辑器，提�
    ```bash
    pip install -r requirements.txt
    ```
+3. 安装 Tesseract OCR 引擎：请从 https://github.com/tesseract-ocr/tesseract 下载并安装，安装完成后请将 Tesseract 的可执行文件添加到系统 PATH 中。
+4. 安装纯 Python OCR 库：
+   ```bash
+   pip install easyocr
+   ```
 
 ## 使用
 
