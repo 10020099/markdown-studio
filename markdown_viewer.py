@@ -9,9 +9,20 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 import os
 
-import easyocr
-import numpy as np
-from PIL import Image
+# OCR 相关库 - 兼容打包的导入方式
+try:
+    # 尝试预导入（用于打包工具检测依赖）
+    import easyocr
+    import numpy as np
+    from PIL import Image
+    # 设置标志表示库已可用
+    OCR_AVAILABLE = True
+except ImportError:
+    # 如果导入失败，设置为不可用
+    OCR_AVAILABLE = False
+    easyocr = None
+    np = None
+    Image = None
 
 # Register a font that supports Chinese characters and set as default
 try:
@@ -45,6 +56,15 @@ class MarkdownViewer(tk.Tk):
         
         # 设置图标和样式
         self.setup_style()
+        
+        # 预编译正则表达式，提高语法高亮性能
+        import re
+        self.regex_patterns = {
+            'bold': re.compile(r'\*\*(.*?)\*\*'),
+            'italic': re.compile(r'(?<!\*)\*([^*]+?)\*(?!\*)'),
+            'code': re.compile(r'`([^`]+?)`'),
+            'link': re.compile(r'\[([^\]]+?)\]\([^)]+?\)')
+        }
         
         self.current_file = None
         self.is_typing = False
@@ -132,13 +152,10 @@ class MarkdownViewer(tk.Tk):
                                font=('Arial', 10))
         status_label.pack(pady=10)
         
-        # 模拟加载过程
+        # 简化加载过程，减少阻塞时间
         def load_progress():
             steps = [
                 "初始化界面组件...",
-                "加载主题配置...",
-                "设置语法高亮...",
-                "启动实时预览...",
                 "完成加载！"
             ]
             def update_ui(step, value):
@@ -148,8 +165,8 @@ class MarkdownViewer(tk.Tk):
                 splash.destroy()
                 self.deiconify()
             for i, step in enumerate(steps):
-                splash.after(0, update_ui, step, (i + 1) * 20)
-                time.sleep(0.5)
+                splash.after(0, update_ui, step, (i + 1) * 50)
+                time.sleep(0.2)  # 减少加载时间
             splash.after(0, finish)
         
         # 在单独线程中运行加载过程
@@ -185,7 +202,7 @@ class MarkdownViewer(tk.Tk):
             if (
                 self.auto_save_enabled
                 and self.current_file
-                and time.time() - self.last_save_time > 30
+                and time.time() - self.last_save_time > 60  # 增加到60秒
             ):
                 try:
                     content = self.editor.get("1.0", tk.END)
@@ -198,9 +215,9 @@ class MarkdownViewer(tk.Tk):
                     self.last_save_time = time.time()
                 except Exception:
                     pass
-            self.after(30000, auto_save)
+            self.after(60000, auto_save)  # 增加检查间隔到60秒
 
-        self.after(30000, auto_save)
+        self.after(60000, auto_save)  # 启动时延迟60秒
 
     def create_widgets(self):
         # 创建顶部工具栏
@@ -424,13 +441,17 @@ class MarkdownViewer(tk.Tk):
     def schedule_update(self):
         if self.update_task is not None:
             self.after_cancel(self.update_task)
-        self.update_task = self.after(300, self.perform_update)
+        # 增加延迟时间，减少频繁更新
+        self.update_task = self.after(500, self.perform_update)
 
     def perform_update(self):
         self.update_task = None
         self.update_preview()
         self.update_word_count()
-        self.apply_syntax_highlighting()
+        # 只有在文档不是很大时才应用语法高亮
+        text = self.editor.get("1.0", tk.END)
+        if len(text) < 10000:  # 小于10K字符才应用语法高亮
+            self.apply_syntax_highlighting()
 
     def update_word_count(self):
         """更新字数统计"""
@@ -999,28 +1020,27 @@ class MarkdownViewer(tk.Tk):
                 elif line.strip() and line.strip()[0].isdigit() and '. ' in line:
                     self.editor.tag_add('list', line_start, line_end)
                 
-                # 粗体和斜体（简单实现）
-                import re
+                # 使用预编译的正则表达式进行匹配
                 # 查找粗体 **text**
-                for match in re.finditer(r'\*\*(.*?)\*\*', line):
+                for match in self.regex_patterns['bold'].finditer(line):
                     start_pos = f"{i+1}.{match.start()}"
                     end_pos = f"{i+1}.{match.end()}"
                     self.editor.tag_add('bold', start_pos, end_pos)
                 
                 # 查找斜体 *text*
-                for match in re.finditer(r'(?<!\*)\*([^*]+?)\*(?!\*)', line):
+                for match in self.regex_patterns['italic'].finditer(line):
                     start_pos = f"{i+1}.{match.start()}"
                     end_pos = f"{i+1}.{match.end()}"
                     self.editor.tag_add('italic', start_pos, end_pos)
                 
                 # 查找行内代码 `code`
-                for match in re.finditer(r'`([^`]+?)`', line):
+                for match in self.regex_patterns['code'].finditer(line):
                     start_pos = f"{i+1}.{match.start()}"
                     end_pos = f"{i+1}.{match.end()}"
                     self.editor.tag_add('code', start_pos, end_pos)
                 
                 # 查找链接 [text](url)
-                for match in re.finditer(r'\[([^\]]+?)\]\([^)]+?\)', line):
+                for match in self.regex_patterns['link'].finditer(line):
                     start_pos = f"{i+1}.{match.start()}"
                     end_pos = f"{i+1}.{match.end()}"
                     self.editor.tag_add('link', start_pos, end_pos)
@@ -1031,6 +1051,11 @@ class MarkdownViewer(tk.Tk):
 
     def ocr_image(self):
         """使用 Pure Python 库 easyocr 执行 OCR 并插入识别结果"""
+        # 检查 OCR 库是否可用
+        if not OCR_AVAILABLE:
+            messagebox.showerror("错误", "OCR 功能不可用。请安装 easyocr 库:\npip install easyocr")
+            return
+            
         # 初始化 OCR 引擎（缓存 Reader）
         if not hasattr(self, '_ocr_reader'):
             try:
