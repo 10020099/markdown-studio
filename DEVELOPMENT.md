@@ -541,9 +541,30 @@ marked.use({
 - 减少启动时的初始化操作
 - 使用异步加载
 
-### Q5: 如何添加国际化支持？
+### Q5: OCR 功能如何工作？
 
-创建语言文件并在运行时加载：
+**A**: OCR 功能使用 Tesseract.js 实现：
+
+```javascript
+// 初始化 OCR Worker
+ocrWorker = await Tesseract.createWorker('chi_sim+eng', 1, {
+    logger: (m) => {
+        // 显示进度
+        if (m.status === 'recognizing text') {
+            progressText.textContent = `识别进度: ${Math.round(m.progress * 100)}%`;
+        }
+    }
+});
+
+// 识别图片
+const { data: { text } } = await ocrWorker.recognize(filePath);
+```
+
+详见 `OCR_GUIDE.md` 获取完整使用指南。
+
+### Q6: 如何添加国际化支持？
+
+**A**: 创建语言文件并在运行时加载：
 
 ```javascript
 const i18n = {
@@ -569,6 +590,7 @@ const i18n = {
 - [ ] 主题切换
 - [ ] 快捷键功能
 - [ ] PDF 导出
+- [ ] OCR 图片识别
 - [ ] 字数统计
 - [ ] 自动保存
 - [ ] 窗口大小调整

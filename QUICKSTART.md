@@ -150,8 +150,8 @@ A:
 - **Node.js 版本**: 跨平台性更好，界面更现代，易于扩展
 - **Python 版本**: 更轻量，启动更快，OCR 功能完整
 
-### Q: 如何启用 OCR 功能（Node.js 版本）？
-A: 需要集成 Tesseract.js 或使用在线 OCR API。可以参考 `renderer.js` 中的 `ocrImage` 函数进行扩展。
+### Q: 如何使用 OCR 功能？
+A: OCR 功能已完全集成！通过菜单 **🛠️ 工具** → **📷 OCR识别** 选择图片即可。支持中文简体+英文识别，详见 `OCR_GUIDE.md`。
 
 ---
 
