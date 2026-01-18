@@ -1,6 +1,0 @@
-markdown==3.4.1
-tkhtmlview==0.3.1
-Pillow>=10.4.0
-xhtml2pdf>=0.2.8
-easyocr>=1.7.0
-numpy>=1.23.0

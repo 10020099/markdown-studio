@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Markdown Studio Pro ✨</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 启动画面 -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <h1 class="splash-title">✨ Markdown Studio Pro ✨</h1>
+            <p class="splash-subtitle">专业的 Markdown 编辑器</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="splash-status" id="splash-status">正在加载...</p>
+        </div>
+    </div>
+
+    <!-- 主应用界面 -->
+    <div id="main-app" class="main-app" style="display: none;">
+        <!-- 顶部工具栏 -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="fancy-button btn-blue" id="btn-open">📁 打开</button>
+                <button class="fancy-button btn-green" id="btn-save">💾 保存</button>
+                <button class="fancy-button btn-purple" id="btn-save-as">📝 另存为</button>
+                <button class="fancy-button btn-orange" id="btn-export-pdf">📄 导出PDF</button>
+            </div>
+            <div class="toolbar-right">
+                <span class="typing-indicator" id="typing-indicator"></span>
+                <span class="clock-label" id="clock-label"></span>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 左侧编辑器 -->
+            <div class="editor-panel">
+                <div class="panel-header">📝 Markdown 编辑器</div>
+                <textarea class="editor" id="editor" spellcheck="false"></textarea>
+            </div>
+
+            <!-- 分隔条 -->
+            <div class="resizer" id="resizer"></div>
+
+            <!-- 右侧预览 -->
+            <div class="preview-panel">
+                <div class="panel-header">👁️ 实时预览</div>
+                <div class="preview" id="preview"></div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span class="file-path-label" id="file-path-label">📄 未打开文件</span>
+            <span class="word-count-label" id="word-count-label">📊 字数: 0 | 字符: 0</span>
+        </div>
+    </div>
+
+    <!-- 模态对话框容器 -->
+    <div id="modal-container"></div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{
+  "name": "markdown-studio-pro",
+  "version": "2.1.0",
+  "description": "专业的 Markdown 编辑器 - Professional Markdown Editor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "preview",
+    "electron"
+  ],
+  "author": "Markdown Studio Team",
+  "license": "MIT",
+  "dependencies": {
+    "highlight.js": "^11.9.0",
+    "marked": "^11.1.1",
+    "puppeteer-core": "^21.7.0",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.markdownstudio.app",
+    "productName": "Markdown Studio Pro",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "styles.css",
+      "mca.ico",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "mca.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "mca.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "mca.ico"
+    }
+  }
+}
