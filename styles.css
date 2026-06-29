@@ -203,6 +203,103 @@ body {
     color: #a6e3a1;
 }
 
+/* ==================== 标签栏 ==================== */
+.tab-bar {
+    display: flex;
+    align-items: center;
+    background-color: #181825;
+    border-bottom: 1px solid #313244;
+    padding: 0 4px;
+    height: 36px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
+}
+
+.tab-bar::-webkit-scrollbar {
+    height: 3px;
+}
+
+.tab-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-bar::-webkit-scrollbar-thumb {
+    background: #45475a;
+    border-radius: 2px;
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    margin-right: 2px;
+    background-color: transparent;
+    color: #6c7086;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+.tab-item:hover {
+    background-color: rgba(49, 50, 68, 0.5);
+    color: #cdd6f4;
+}
+
+.tab-item.active {
+    background-color: #1e1e2e;
+    color: #89b4fa;
+    border-color: #313244;
+    border-bottom: 2px solid #89b4fa;
+}
+
+.tab-title {
+    pointer-events: none;
+}
+
+.tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1;
+    color: #6c7086;
+    transition: all 0.2s ease;
+}
+
+.tab-close:hover {
+    background-color: #f38ba8;
+    color: white;
+}
+
+.tab-new {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 26px;
+    margin-left: 4px;
+    border-radius: 6px;
+    font-size: 18px;
+    color: #6c7086;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.tab-new:hover {
+    background-color: rgba(137, 180, 250, 0.2);
+    color: #89b4fa;
+}
+
 /* ==================== 编辑器 ==================== */
 .editor {
     flex: 1;
@@ -347,7 +444,6 @@ body {
 
 .preview pre {
     background-color: #313244;
-    color: #a6e3a1;
     padding: 15px;
     margin: 15px 0;
     border-radius: 8px;
@@ -358,6 +454,16 @@ body {
 .preview pre code {
     background: none;
     padding: 0;
+}
+
+/* 行内代码保持高对比度，不妥 hljs 主题影响 */
+.preview code:not(.hljs) {
+    background-color: #313244;
+    color: #a6e3a1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 13px;
 }
 
 .preview blockquote {
@@ -586,6 +692,27 @@ body.theme-light .status-bar {
     color: #333333;
 }
 
+body.theme-light .tab-bar {
+    background-color: #e8e8e8;
+    border-bottom-color: #ddd;
+}
+
+body.theme-light .tab-item {
+    color: #888;
+}
+
+body.theme-light .tab-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+body.theme-light .tab-item.active {
+    background-color: #ffffff;
+    color: #2196F3;
+    border-color: #ddd;
+    border-bottom-color: #2196F3;
+}
+
 body.theme-light .editor,
 body.theme-light .preview {
     background-color: #ffffff;
@@ -607,6 +734,10 @@ body.theme-light .preview code,
 body.theme-light .preview pre {
     background-color: #f5f5f5;
     color: #4CAF50;
+}
+
+body.theme-light .preview pre code.hljs {
+    color: #24292e;
 }
 
 body.theme-light .preview blockquote {
@@ -668,6 +799,17 @@ body.theme-gaming .preview h5 { color: #f85149; }
         padding: 8px 12px;
         font-size: 12px;
     }
+}
+
+/* ==================== 专注模式 ==================== */
+body.focus-mode .toolbar,
+body.focus-mode .status-bar,
+body.focus-mode .panel-header {
+    display: none;
+}
+
+body.focus-mode .main-content {
+    padding: 0;
 }
 
 /* ==================== 选择文本样式 ==================== */

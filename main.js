@@ -67,6 +67,17 @@ function createMenu() {
             label: '📂 文件',
             submenu: [
                 {
+                    label: '📑 新建标签页',
+                    accelerator: 'CmdOrCtrl+T',
+                    click: () => newTab()
+                },
+                {
+                    label: '✖ 关闭标签页',
+                    accelerator: 'CmdOrCtrl+W',
+                    click: () => closeCurrentTab()
+                },
+                { type: 'separator' },
+                {
                     label: '📁 打开',
                     accelerator: 'CmdOrCtrl+O',
                     click: () => openFile()
@@ -134,6 +145,9 @@ function createMenu() {
                 },
                 {
                     label: '🎯 专注模式',
+                    accelerator: 'CmdOrCtrl+Shift+F',
+                    type: 'checkbox',
+                    checked: false,
                     click: () => toggleFocusMode()
                 },
                 { type: 'separator' },
@@ -258,6 +272,16 @@ async function exportToPDF() {
     }
 }
 
+// 新建标签页
+function newTab() {
+    mainWindow.webContents.send('new-tab');
+}
+
+// 关闭当前标签页
+function closeCurrentTab() {
+    mainWindow.webContents.send('close-tab');
+}
+
 // 切换主题
 function changeTheme(themeName) {
     mainWindow.webContents.send('change-theme', themeName);
@@ -359,6 +383,13 @@ ipcMain.on('show-message', (event, { type, title, message }) => {
 
 ipcMain.on('show-error', (event, { title, message }) => {
     dialog.showErrorBox(title, message);
+});
+
+// 工具栏按钮转发的菜单动作
+ipcMain.on('menu-action', (event, action) => {
+    if (action === 'open-file') openFile();
+    else if (action === 'save-file-as') saveFileAs();
+    else if (action === 'export-pdf') exportToPDF();
 });
 
 // 应用生命周期
